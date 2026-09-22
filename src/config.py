@@ -24,3 +24,5 @@ PIPELINE_INTERVAL_MINUTES = int(os.getenv("PIPELINE_INTERVAL_MINUTES", "60"))
 # cron mode — daily at hour:minute
 PIPELINE_CRON_HOUR = int(os.getenv("PIPELINE_CRON_HOUR", "2"))
 PIPELINE_CRON_MINUTE = int(os.getenv("PIPELINE_CRON_MINUTE", "0"))
+
+FIGURES_DIR = PROJECT_ROOT / "outputs" / "figures"
