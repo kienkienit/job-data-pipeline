@@ -11,4 +11,16 @@ load_dotenv(PROJECT_ROOT / ".env")
 DB_URL = os.getenv("DB_URL", "postgresql+psycopg2://macbook@localhost:5432/jobs_db")
 
 RAW_CSV = PROJECT_ROOT / os.getenv("RAW_CSV_PATH", "data/data.csv")
-PROCESSED_CSV = PROJECT_ROOT / os.getenv( "PROCESSED_CSV_PATH", "data/processed/jobs_clean.csv")
+PROCESSED_CSV = PROJECT_ROOT / os.getenv(
+    "PROCESSED_CSV_PATH", "data/processed/jobs_clean.csv"
+)
+
+# "interval" | "cron"
+SCHEDULE_TYPE = os.getenv("SCHEDULE_TYPE", "cron").strip().lower()
+
+# interval mode
+PIPELINE_INTERVAL_MINUTES = int(os.getenv("PIPELINE_INTERVAL_MINUTES", "60"))
+
+# cron mode — daily at hour:minute
+PIPELINE_CRON_HOUR = int(os.getenv("PIPELINE_CRON_HOUR", "2"))
+PIPELINE_CRON_MINUTE = int(os.getenv("PIPELINE_CRON_MINUTE", "0"))
