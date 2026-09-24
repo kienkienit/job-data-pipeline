@@ -4,12 +4,13 @@ from apscheduler.schedulers.blocking import BlockingScheduler
 
 from src import config
 from src.errors import PipelineError, setup_logging
+from src.notify.discord import notify_new_de_jobs
 from src.pipeline import run_pipeline
 
 logger = setup_logging()
 
 
-def scheduled_job() -> None:
+def scheduled_etl_job() -> None:
     logger.info("Scheduled pipeline run started")
     try:
         run_pipeline(skip_load=False)
@@ -20,16 +21,31 @@ def scheduled_job() -> None:
         logger.exception("Scheduled pipeline run failed unexpectedly")
 
 
+def scheduled_discord_job() -> None:
+    if not config.DISCORD_WEBHOOK_URL:
+        logger.warning("DISCORD_WEBHOOK_URL empty — skip Discord notify")
+        return
+    logger.info("Scheduled Discord DE notify started")
+    try:
+        n = notify_new_de_jobs()
+        logger.info("Scheduled Discord DE notify finished — sent %s", n)
+    except PipelineError as exc:
+        logger.error("Scheduled Discord notify failed: %s", exc)
+    except Exception:
+        logger.exception("Scheduled Discord notify failed unexpectedly")
+
+
 def create_scheduler(
     schedule_type: str | None = None,
     *,
     interval_minutes: int | None = None,
     cron_hour: int | None = None,
     cron_minute: int | None = None,
+    discord_interval_hours: int | None = None,
 ) -> BlockingScheduler:
     mode = (schedule_type or config.SCHEDULE_TYPE).strip().lower()
     scheduler = BlockingScheduler()
-    common = {"id": "job_etl", "max_instances": 1, "coalesce": True}
+    etl_common = {"id": "job_etl", "max_instances": 1, "coalesce": True}
 
     if mode == "interval":
         minutes = (
@@ -40,10 +56,10 @@ def create_scheduler(
         if minutes <= 0:
             raise ValueError("PIPELINE_INTERVAL_MINUTES must be > 0")
         scheduler.add_job(
-            scheduled_job,
+            scheduled_etl_job,
             trigger="interval",
             minutes=minutes,
-            **common,
+            **etl_common,
         )
     elif mode == "cron":
         hour = config.PIPELINE_CRON_HOUR if cron_hour is None else cron_hour
@@ -53,21 +69,37 @@ def create_scheduler(
         if not (0 <= minute <= 59):
             raise ValueError("PIPELINE_CRON_MINUTE must be between 0 and 59")
         scheduler.add_job(
-            scheduled_job,
+            scheduled_etl_job,
             trigger="cron",
             hour=hour,
             minute=minute,
-            **common,
+            **etl_common,
         )
     else:
         raise ValueError(
             f"Unknown SCHEDULE_TYPE={mode!r}. Use 'interval' or 'cron'."
         )
 
+    hours = (
+        config.DISCORD_INTERVAL_HOURS
+        if discord_interval_hours is None
+        else discord_interval_hours
+    )
+    if hours <= 0:
+        raise ValueError("DISCORD_INTERVAL_HOURS must be > 0")
+    scheduler.add_job(
+        scheduled_discord_job,
+        trigger="interval",
+        hours=hours,
+        id="job_discord_de",
+        max_instances=1,
+        coalesce=True,
+    )
+
     return scheduler
 
 
-def _describe_schedule() -> str:
+def _describe_etl_schedule() -> str:
     if config.SCHEDULE_TYPE == "interval":
         return f"every {config.PIPELINE_INTERVAL_MINUTES} minute(s)"
     return f"daily at {config.PIPELINE_CRON_HOUR:02d}:{config.PIPELINE_CRON_MINUTE:02d}"
@@ -76,13 +108,14 @@ def _describe_schedule() -> str:
 def main() -> None:
     scheduler = create_scheduler()
     logger.info(
-        "Scheduler started — %s (%s) (Ctrl+C to stop)",
+        "Scheduler started — ETL %s (%s); Discord DE every %sh (Ctrl+C to stop)",
         config.SCHEDULE_TYPE,
-        _describe_schedule(),
+        _describe_etl_schedule(),
+        config.DISCORD_INTERVAL_HOURS,
     )
 
-    if config.SCHEDULE_TYPE == "interval":
-        scheduled_job()
+    scheduled_etl_job()
+    scheduled_discord_job()
 
     try:
         scheduler.start()

@@ -37,3 +37,14 @@ PIPELINE_CRON_HOUR = int(os.getenv("PIPELINE_CRON_HOUR", "2"))
 PIPELINE_CRON_MINUTE = int(os.getenv("PIPELINE_CRON_MINUTE", "0"))
 
 FIGURES_DIR = PROJECT_ROOT / "outputs" / "figures"
+
+# Discord: new Data Engineer jobs
+DISCORD_WEBHOOK_URL = os.getenv("DISCORD_WEBHOOK_URL", "").strip()
+DISCORD_INTERVAL_HOURS = int(os.getenv("DISCORD_INTERVAL_HOURS", "2"))
+DISCORD_STATE_PATH = PROJECT_ROOT / os.getenv(
+    "DISCORD_STATE_PATH", "data/state/discord_notified.json"
+)
+# "file" (local) | "db" (GitHub Actions / shared Postgres)
+DISCORD_STATE_BACKEND = os.getenv("DISCORD_STATE_BACKEND", "file").strip().lower()
+DISCORD_MAX_MESSAGES = int(os.getenv("DISCORD_MAX_MESSAGES", "10"))
+

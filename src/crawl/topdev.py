@@ -154,6 +154,7 @@ def fetch_jobs_page(
     params = {
         "page": page,
         "page_size": page_size,
+        "ordering": "newest",
         "fields[job]": JOB_FIELDS,
         "fields[company]": COMPANY_FIELDS,
     }

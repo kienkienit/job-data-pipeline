@@ -4,7 +4,7 @@ from unittest.mock import patch
 
 import pytest
 
-from jobs.scheduler import create_scheduler, scheduled_job
+from jobs.scheduler import create_scheduler, scheduled_discord_job, scheduled_etl_job
 from src.errors import LoadError
 
 
@@ -13,6 +13,8 @@ def test_create_interval_scheduler():
     job = scheduler.get_job("job_etl")
     assert job is not None
     assert job.trigger.interval.total_seconds() == 30 * 60
+    discord = scheduler.get_job("job_discord_de")
+    assert discord is not None
 
 
 def test_create_cron_scheduler():
@@ -39,12 +41,19 @@ def test_rejects_bad_cron_hour():
         create_scheduler(schedule_type="cron", cron_hour=24, cron_minute=0)
 
 
-def test_scheduled_job_swallows_pipeline_error():
+def test_scheduled_etl_swallows_pipeline_error():
     with patch("jobs.scheduler.run_pipeline", side_effect=LoadError("db down")):
-        scheduled_job()
+        scheduled_etl_job()
 
 
-def test_scheduled_job_calls_pipeline():
+def test_scheduled_etl_calls_pipeline():
     with patch("jobs.scheduler.run_pipeline") as mock_run:
-        scheduled_job()
+        scheduled_etl_job()
         mock_run.assert_called_once_with(skip_load=False)
+
+
+def test_scheduled_discord_skips_without_webhook():
+    with patch("jobs.scheduler.config.DISCORD_WEBHOOK_URL", ""):
+        with patch("jobs.scheduler.notify_new_de_jobs") as mock_notify:
+            scheduled_discord_job()
+            mock_notify.assert_not_called()

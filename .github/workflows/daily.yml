@@ -1,0 +1,57 @@
+# Daily TopDev crawl → Postgres → Discord DE notify (free via GitHub Actions).
+#
+# Schedule is UTC. 19:00 UTC = 02:00 Vietnam (UTC+7).
+# Manual run: Actions → "Daily ETL + Discord" → Run workflow
+
+name: Daily ETL + Discord
+
+on:
+  schedule:
+    - cron: "0 19 * * *"
+  workflow_dispatch:
+
+jobs:
+  run:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+
+    env:
+      DB_URL: ${{ secrets.DB_URL }}
+      DISCORD_WEBHOOK_URL: ${{ secrets.DISCORD_WEBHOOK_URL }}
+      EXTRACT_SOURCE: crawl
+      CRAWL_MAX_PAGES: "20"
+      CRAWL_PAGE_SIZE: "50"
+      CRAWL_DELAY_SECONDS: "1.0"
+      DISCORD_STATE_BACKEND: db
+      DISCORD_MAX_MESSAGES: "20"
+      PYTHONPATH: .
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: pip
+
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+
+      - name: Check secrets
+        run: |
+          if [ -z "$DB_URL" ]; then
+            echo "Missing secret DB_URL (Neon/Supabase connection string with +psycopg2 and sslmode=require)"
+            exit 1
+          fi
+          if [ -z "$DISCORD_WEBHOOK_URL" ]; then
+            echo "Missing secret DISCORD_WEBHOOK_URL"
+            exit 1
+          fi
+
+      - name: Run ETL (crawl → transform → load)
+        run: python -m src.pipeline
+
+      - name: Notify Discord (new DE jobs)
+        run: python -m jobs.discord_notifier
