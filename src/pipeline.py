@@ -7,7 +7,7 @@ import pandas as pd
 
 from src import config
 from src.errors import PipelineError, setup_logging
-from src.extract import extract_from_csv
+from src.extract import extract
 from src.load import load_to_db
 from src.transform_batch import transform
 
@@ -17,8 +17,11 @@ logger = setup_logging()
 def run_extract_transform(
     raw_csv: Path = config.RAW_CSV,
     output_csv: Path = config.PROCESSED_CSV,
+    *,
+    source: str | None = None,
 ) -> pd.DataFrame:
-    raw = extract_from_csv(raw_csv)
+    """Extract (csv or crawl) → Transform → write processed CSV."""
+    raw = extract(source=source, raw_csv=raw_csv)
     cleaned = transform(raw)
 
     try:
@@ -37,9 +40,14 @@ def run_pipeline(
     raw_csv: Path = config.RAW_CSV,
     output_csv: Path = config.PROCESSED_CSV,
     db_url: str | None = None,
+    source: str | None = None,
 ) -> pd.DataFrame:
     try:
-        cleaned = run_extract_transform(raw_csv=raw_csv, output_csv=output_csv)
+        cleaned = run_extract_transform(
+            raw_csv=raw_csv,
+            output_csv=output_csv,
+            source=source,
+        )
 
         if skip_load:
             logger.info("skip_load=True — skipped database write")

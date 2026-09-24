@@ -65,6 +65,7 @@ def test_pipeline_propagates_extract_error(tmp_path: Path):
     with pytest.raises(ExtractError):
         run_pipeline(
             skip_load=True,
+            source="csv",
             raw_csv=tmp_path / "nope.csv",
             output_csv=tmp_path / "out.csv",
         )

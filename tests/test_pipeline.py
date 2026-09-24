@@ -45,7 +45,7 @@ def test_run_extract_transform_writes_csv(tmp_path: Path):
         encoding="utf-8",
     )
     out = tmp_path / "clean.csv"
-    cleaned_df = run_extract_transform(raw_csv=raw, output_csv=out)
+    cleaned_df = run_extract_transform(raw_csv=raw, output_csv=out, source="csv")
     assert out.exists()
     assert len(cleaned_df) == 1
     cleaned = pd.read_csv(out)

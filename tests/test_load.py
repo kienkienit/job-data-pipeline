@@ -48,6 +48,7 @@ def test_run_pipeline_skip_load(tmp_path: Path):
         skip_load=True,
         raw_csv=raw,
         output_csv=out,
+        source="csv",
     )
     assert out.exists()
     assert df.loc[0, "job_group"] == "Software Engineer"

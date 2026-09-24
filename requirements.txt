@@ -6,3 +6,4 @@ python-dotenv>=1.0
 APScheduler>=3.10
 matplotlib>=3.7
 seaborn>=0.13
+requests>=2.31

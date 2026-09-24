@@ -15,6 +15,17 @@ PROCESSED_CSV = PROJECT_ROOT / os.getenv(
     "PROCESSED_CSV_PATH", "data/processed/jobs_clean.csv"
 )
 
+# "csv" | "crawl" — where Extract reads data from
+EXTRACT_SOURCE = os.getenv("EXTRACT_SOURCE", "csv").strip().lower()
+
+# TopDev crawl settings (used when EXTRACT_SOURCE=crawl)
+CRAWL_MAX_PAGES = int(os.getenv("CRAWL_MAX_PAGES", "10"))
+CRAWL_PAGE_SIZE = int(os.getenv("CRAWL_PAGE_SIZE", "50"))
+CRAWL_DELAY_SECONDS = float(os.getenv("CRAWL_DELAY_SECONDS", "1.0"))
+CRAWL_RAW_CSV = PROJECT_ROOT / os.getenv(
+    "CRAWL_RAW_CSV_PATH", "data/raw/topdev_latest.csv"
+)
+
 # "interval" | "cron"
 SCHEDULE_TYPE = os.getenv("SCHEDULE_TYPE", "cron").strip().lower()
 
