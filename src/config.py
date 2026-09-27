@@ -8,7 +8,25 @@ from dotenv import load_dotenv
 PROJECT_ROOT = Path(__file__).resolve().parents[1]
 load_dotenv(PROJECT_ROOT / ".env")
 
-DB_URL = os.getenv("DB_URL", "postgresql+psycopg2://macbook@localhost:5432/jobs_db")
+
+def use_psycopg2(db_url: str) -> str:
+    """Point Postgres URLs at psycopg2 (the driver this project installs).
+
+    Newer SQLAlchemy treats a bare ``postgresql://`` URL as psycopg v3.
+    Neon/Supabase connection strings usually omit the driver name.
+    """
+    url = (db_url or "").strip()
+    if url.startswith("postgresql+psycopg2://"):
+        return url
+    for prefix in ("postgresql+psycopg://", "postgresql://", "postgres://"):
+        if url.startswith(prefix):
+            return "postgresql+psycopg2://" + url[len(prefix) :]
+    return url
+
+
+DB_URL = use_psycopg2(
+    os.getenv("DB_URL", "postgresql+psycopg2://macbook@localhost:5432/jobs_db")
+)
 
 RAW_CSV = PROJECT_ROOT / os.getenv("RAW_CSV_PATH", "data/data.csv")
 PROCESSED_CSV = PROJECT_ROOT / os.getenv(

@@ -6,9 +6,22 @@ import pandas as pd
 import pytest
 from sqlalchemy import create_engine, text
 
+from src.config import use_psycopg2
 from src.errors import LoadError
 from src.load import load_to_db
 from src.pipeline import run_pipeline
+
+
+def test_use_psycopg2_rewrites_bare_postgres_url():
+    assert (
+        use_psycopg2("postgresql://user:pw@host/db?sslmode=require")
+        == "postgresql+psycopg2://user:pw@host/db?sslmode=require"
+    )
+    assert (
+        use_psycopg2("postgresql+psycopg://user:pw@host/db")
+        == "postgresql+psycopg2://user:pw@host/db"
+    )
+    assert use_psycopg2("sqlite:///:memory:") == "sqlite:///:memory:"
 
 
 def test_load_rejects_empty():

@@ -4,6 +4,7 @@ import pandas as pd
 from sqlalchemy import create_engine, text
 from sqlalchemy.exc import OperationalError, SQLAlchemyError
 
+from src.config import use_psycopg2
 from src.errors import LoadError, setup_logging
 
 logger = setup_logging()
@@ -41,7 +42,7 @@ def load_to_db(
         raise LoadError("DB_URL is empty — set it in .env (see .env.example)")
 
     try:
-        engine = create_engine(db_url)
+        engine = create_engine(use_psycopg2(db_url))
         with engine.begin() as conn:
             conn.execute(text("SELECT 1"))
 
