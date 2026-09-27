@@ -1,13 +1,11 @@
-# Daily TopDev crawl → Postgres → Discord DE notify (free via GitHub Actions).
-#
-# Schedule is UTC. 19:00 UTC = 02:00 Vietnam (UTC+7).
-# Manual run: Actions → "Daily ETL + Discord" → Run workflow
+# Crawl + Discord every 2 hours (UTC, on the hour: 00:00, 02:00, ...).
+# Manual run: Actions → "ETL + Discord" → Run workflow
 
-name: Daily ETL + Discord
+name: ETL + Discord
 
 on:
   schedule:
-    - cron: "0 19 * * *"
+    - cron: "0 */2 * * *"
   workflow_dispatch:
 
 jobs:

@@ -27,7 +27,7 @@ Optional **Variables** (same page → Variables):
 
 | Variable | Default in workflow | Meaning |
 |----------|---------------------|---------|
-| `CRAWL_MAX_PAGES` | `20` | Pages per daily crawl (~1000 jobs) |
+| `CRAWL_MAX_PAGES` | `20` | Pages per crawl (~1000 newest jobs) |
 | `CRAWL_PAGE_SIZE` | `50` | Jobs per page |
 | `DISCORD_MAX_MESSAGES` | `20` | Max DE messages per run |
 
@@ -37,12 +37,12 @@ Push `main` (includes `.github/workflows/daily.yml`). Do **not** commit `.env`.
 
 ## 4. Test
 
-**Actions → Daily ETL + Discord → Run workflow**
+**Actions → ETL + Discord → Run workflow**
 
-Cron: **02:00 Vietnam time** every day (`0 19 * * *` UTC).
+Cron: every 2 hours UTC (`0 */2 * * *`), at 00:00, 02:00, 04:00, and so on. GitHub may start a few minutes late.
 
 ## Notes
 
 - Actions uses `DISCORD_STATE_BACKEND=db` so notified keys survive between runs (table `discord_notified`).
 - Local Mac can keep `DISCORD_STATE_BACKEND=file` (default) and local Postgres.
-- Private repos: free Actions minutes are limited; one short daily run is usually fine.
+- Private repos: free Actions minutes are limited. Twelve short runs a day usually stay inside the monthly quota.
