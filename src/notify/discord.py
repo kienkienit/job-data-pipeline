@@ -132,7 +132,6 @@ def notify_new_de_jobs(
         sent_keys.add(key)
 
     if not dry_run and sent_keys:
-        # File backend needs full set; DB backend upserts (ON CONFLICT DO NOTHING).
         save_notified_keys(already | sent_keys)
 
     logger.info("Discord notify done — sent %s job(s)", len(sent_keys))

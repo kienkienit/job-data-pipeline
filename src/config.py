@@ -13,7 +13,6 @@ def use_psycopg2(db_url: str) -> str:
     """Point Postgres URLs at psycopg2 (the driver this project installs).
 
     Newer SQLAlchemy treats a bare ``postgresql://`` URL as psycopg v3.
-    Neon/Supabase connection strings usually omit the driver name.
     """
     url = (db_url or "").strip()
     if url.startswith("postgresql+psycopg2://"):
@@ -62,7 +61,5 @@ DISCORD_INTERVAL_HOURS = int(os.getenv("DISCORD_INTERVAL_HOURS", "2"))
 DISCORD_STATE_PATH = PROJECT_ROOT / os.getenv(
     "DISCORD_STATE_PATH", "data/state/discord_notified.json"
 )
-# "file" (local) | "db" (GitHub Actions / shared Postgres)
-DISCORD_STATE_BACKEND = os.getenv("DISCORD_STATE_BACKEND", "file").strip().lower()
 DISCORD_MAX_MESSAGES = int(os.getenv("DISCORD_MAX_MESSAGES", "10"))
 
