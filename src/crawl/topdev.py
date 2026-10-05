@@ -187,7 +187,17 @@ def crawl_topdev(
     rows: list[dict[str, Any]] = []
 
     for page in range(1, max_pages + 1):
-        payload = fetch_jobs_page(page=page, page_size=page_size, session=session)
+        try:
+            payload = fetch_jobs_page(page=page, page_size=page_size, session=session)
+        except ExtractError as exc:
+            if rows and "422" in str(exc):
+                logger.warning(
+                    "TopDev page %s rejected (422) — stopping with %s jobs collected",
+                    page,
+                    len(rows),
+                )
+                break
+            raise
         data = payload.get("data") or []
         meta = payload.get("meta") or {}
         logger.info(
